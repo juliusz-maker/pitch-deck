@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS data_room_page_views (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_dr_page_views_slug ON data_room_page_views(page_slug);
-CREATE INDEX idx_dr_page_views_email ON data_room_page_views(email);
-CREATE INDEX idx_dr_page_views_session ON data_room_page_views(session_id);
+CREATE INDEX IF NOT EXISTS idx_dr_page_views_slug ON data_room_page_views(page_slug);
+CREATE INDEX IF NOT EXISTS idx_dr_page_views_email ON data_room_page_views(email);
+CREATE INDEX IF NOT EXISTS idx_dr_page_views_session ON data_room_page_views(session_id);
