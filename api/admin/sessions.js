@@ -2,6 +2,12 @@ const { sql } = require('../_lib/db');
 const { isAdminAuthed } = require('../_lib/admin-auth');
 
 module.exports = async (req, res) => {
+  if (req.method !== 'GET') {
+    res.writeHead(405);
+    res.end();
+    return;
+  }
+
   if (!(await isAdminAuthed(req))) {
     res.writeHead(401);
     res.end();
