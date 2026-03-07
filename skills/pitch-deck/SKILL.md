@@ -2,7 +2,7 @@
 name: pitch-deck
 description: >
   Full-stack 16:9 pitch deck framework: slide engine with scroll animations, magic link auth,
-  session analytics, admin dashboard, data room. Build pipeline: slides.yaml → build.js → page.html.
+  session analytics, admin dashboard, data room. Multi-deck build pipeline: decks/*.yaml → build.js → page.html.
   Design system with 4 slide types, 15+ component classes, CSS custom properties, and responsive
   desktop/mobile layouts. Deploy on Vercel.
 ---
@@ -13,16 +13,19 @@ description: >
 
 ```
 content/
-  slides.yaml          ← Slide manifest (sections + ordering)
-  head.html            ← CSS design system (1200 lines)
+  decks/main.yaml      ← Main deck manifest (sections + ordering)
+  decks/*.yaml         ← Additional deck manifests (multi-deck)
+  head.html            ← CSS design system
   slides/*.html        ← Individual slide files
-  tail.html            ← JavaScript engine (520 lines)
+  tail.html            ← JavaScript engine (full deck with nav/tracking)
+  tail-minimal.html    ← JavaScript engine (standalone decks, no nav)
   page.html            ← Generated output (DO NOT EDIT)
-build.js               ← Build pipeline (zero deps)
+build.js               ← Multi-deck build pipeline (zero deps)
+dev-server.js          ← Dev server with live reload
 public/
   login.html           ← Magic link login
   join.html            ← Invite-code registration
-  fonts/*.woff2        ← Inter, DM Serif Text, JetBrains Mono
+  fonts/*.woff2        ← Font files (see styles/brand.md for active fonts)
 api/                   ← Vercel serverless endpoints
   _lib/                ← Shared auth, DB, config
   admin/               ← Admin dashboard routes
@@ -31,14 +34,19 @@ migrations/            ← PostgreSQL schema (7 files)
 
 ### Build Pipeline
 
-`node build.js` reads `slides.yaml`, concatenates `head.html` + all slide files + `tail.html`,
-injects navigation JS arrays (`groups[]`, `sectionNames{}`), writes `content/page.html`.
+`node build.js` reads YAML manifests from `content/decks/`, concatenates `head.html` + slide files + appropriate tail variant, injects navigation JS arrays (`groups[]`, `sectionNames{}`), and writes output files. Each manifest specifies `title`, `tail` (full or minimal), `output` filename, and `sections`.
+
+Build a single deck: `node build.js main` (matches `content/decks/main.yaml`).
 
 **Zero external build dependencies** — uses only Node.js `fs` + `path`.
 
-### Manifest Format (`content/slides.yaml`)
+### Manifest Format (`content/decks/main.yaml`)
 
 ```yaml
+title: "Deck Title — 2025"
+tail: full        # "full" = main deck with nav/tracking, "minimal" = standalone
+output: page.html # output filename in content/
+
 sections:
   - name: Section Name
     slides:
@@ -52,31 +60,40 @@ sections:
 Slide slugs must be kebab-case, matching `content/slides/<slug>.html`.
 The build system maps each slide to its section index for dot-rail navigation.
 
+To add a new deck, create a YAML manifest in `content/decks/` with a unique output filename.
+
 ---
 
 ## CSS Design Tokens
 
-All theming is driven by `:root` custom properties in `content/head.html`:
+All theming is driven by `:root` custom properties in `content/head.html`.
+Brand-specific values (accent color, fonts, RGB references) are in `styles/brand.md`.
+**Always read `styles/brand.md` for the active values before writing slides or modifying theme.**
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `--bg` | `#000000` | Page background |
-| `--bg-deep` | `#000000` | Deep background variant |
-| `--bg-surface` | `rgba(255,255,255,0.03)` | Card/surface fill |
-| `--text` | `#ECEEE2` | Primary text (warm cream) |
-| `--text-secondary` | `rgba(236,238,226,0.5)` | Secondary text |
-| `--text-muted` | `rgba(236,238,226,0.2)` | Tertiary/muted text |
-| `--accent` | `#E85D2C` | Accent color (burnt orange) |
-| `--accent-soft` | `rgba(232,93,44,0.12)` | Accent at low opacity |
-| `--divider` | `rgba(236,238,226,0.08)` | Borders and dividers |
+Core token structure:
+
+| Variable | Purpose |
+|----------|---------|
+| `--bg` | Page background |
+| `--bg-deep` | Deep background variant |
+| `--bg-surface` | Card/surface fill |
+| `--text` | Primary text |
+| `--text-secondary` | Secondary text |
+| `--text-muted` | Tertiary/muted text |
+| `--accent` | Primary accent color |
+| `--accent-soft` | Accent at low opacity |
+| `--accent-border` | Accent borders |
+| `--divider` | Borders and dividers |
 
 ### Typography
 
-| Font | Weights | Usage |
-|------|---------|-------|
-| **Inter** | 400, 700 | Body, labels, cards, UI chrome |
-| **DM Serif Text** | 400 | Headlines, hero titles, big numbers |
-| **JetBrains Mono** | 300-500 | Navigation dots, slide counter, bar labels |
+Three font roles (actual font families defined in `styles/brand.md`):
+
+| Role | Usage |
+|------|-------|
+| **Headline** (serif) | Headlines, hero titles, big numbers |
+| **Body** (sans-serif) | Body text, labels, cards, UI chrome |
+| **Mono** | Navigation dots, slide counter, bar labels, data tables |
 
 ### Key Sizes
 
@@ -187,6 +204,15 @@ Images go in `public/images/` and are referenced as `images/filename.png` (relat
 
 ---
 
+## Style Rules
+
+- **No inline styles for design-system patterns.** Every reusable visual pattern must have a CSS class in `content/head.html`. Inline `style=""` is only acceptable for one-off layout spacing (margin-top on a specific instance) or unique positioning.
+- When creating a new slide, check if existing component classes cover your needs before writing new ones.
+- If a new visual pattern appears on 2+ slides, extract it into a named CSS class.
+- New CSS classes go in `content/head.html` inside the `<style>` block, grouped with a comment header (e.g., `/* ─── STEP CARDS ─── */`).
+
+---
+
 ## Animation System
 
 ### Scroll Reveals
@@ -226,16 +252,18 @@ Bars start at `height: 0` and animate to their `data-height` percentage when the
 ## Workflow: Adding a Slide
 
 1. Create `content/slides/<name>.html` with `<div class="slide">` wrapper
-2. Add the slug to the appropriate section in `content/slides.yaml`
+2. Add the slug to the appropriate section in `content/decks/main.yaml`
 3. Run `node build.js` to regenerate `content/page.html`
 4. Test with `node dev-server.js` (serves on localhost)
 
 ## Workflow: Theming
 
-1. Edit CSS custom properties in `:root` block of `content/head.html`
-2. Grep for hardcoded accent RGB values: `232,93,44` and `E85D2C`
-3. Update `public/login.html` and `public/join.html` (they have independent inline styles)
-4. Rebuild with `node build.js`
+1. Read `styles/brand.md` for current accent hex and RGB values
+2. Edit CSS custom properties in `:root` block of `content/head.html`
+3. Grep for hardcoded accent hex and RGB values (listed in `styles/brand.md`)
+4. Update `public/login.html` and `public/join.html` (they have independent inline styles)
+5. Update `styles/brand.md` to reflect new values
+6. Rebuild with `node build.js`
 
 ## Creating a New Deck
 
@@ -253,7 +281,7 @@ git remote remove template
 
 Then replace the demo content:
 1. **Delete all demo slides**: `rm content/slides/*.html`
-2. **Clear the manifest**: edit `content/slides.yaml` to have one empty section
+2. **Clear the manifest**: edit `content/decks/main.yaml` to have one empty section
 3. **Re-brand**: run `/pitch-deck:customize` to change colors, fonts, brand name
 4. **Create your hero**: run `/pitch-deck:add-slide hero --section "Your Company" --type hero`
 5. **Add slides**: run `/pitch-deck:add-slide <name> --section "Section"` for each slide

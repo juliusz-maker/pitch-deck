@@ -239,13 +239,21 @@ Best for: market share, penetration rate
 </div>
 ```
 
+## Style Rules
+
+- **Use CSS classes, not inline styles.** Check the component library above and `content/head.html` for existing classes before adding any `style=""` attributes. Inline styles are only acceptable for one-off spacing (e.g., `margin-top` on a specific element) or truly unique positioning.
+- If the slide needs a visual pattern not covered by existing classes, add a new CSS class to `content/head.html` inside the `<style>` block, grouped under a comment header (e.g., `/* ─── STEP CARDS ─── */`).
+- If a pattern appears on 2+ slides, it **must** be a named CSS class — never duplicate inline styles across slides.
+
 ## Workflow
 
-1. **Read** `content/slides.yaml` to understand current structure
-2. **Create** `content/slides/<slide-name>.html` using the appropriate template
-3. **Update** `content/slides.yaml`:
+1. **Read** `content/decks/main.yaml` to understand current structure
+2. **Read** `content/head.html` to check existing component classes before creating new patterns
+3. **Create** `content/slides/<slide-name>.html` using the appropriate template and existing CSS classes
+4. **Add CSS** to `content/head.html` if a new visual pattern is needed (never use inline styles for reusable patterns)
+5. **Update** `content/decks/main.yaml`:
    - If `--section` matches an existing section, append the slide slug to that section's slides list
    - If `--section` is new, create a new section entry
    - If no `--section`, append to the last section
-4. **Build**: Run `cd $CLAUDE_PROJECT_ROOT && node build.js`
-5. **Report**: Confirm the slide was added and the build succeeded
+6. **Build**: Run `cd $CLAUDE_PROJECT_ROOT && node build.js`
+7. **Report**: Confirm the slide was added and the build succeeded
