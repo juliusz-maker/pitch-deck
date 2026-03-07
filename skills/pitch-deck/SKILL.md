@@ -2,7 +2,7 @@
 name: pitch-deck
 description: >
   Full-stack 16:9 pitch deck framework: slide engine with scroll animations, magic link auth,
-  session analytics, admin dashboard, data room. Build pipeline: slides.yaml → build.js → page.html.
+  session analytics, admin dashboard, data room. Multi-deck build pipeline: decks/*.yaml → build.js → page.html.
   Design system with 4 slide types, 15+ component classes, CSS custom properties, and responsive
   desktop/mobile layouts. Deploy on Vercel.
 ---
@@ -13,12 +13,15 @@ description: >
 
 ```
 content/
-  slides.yaml          ← Slide manifest (sections + ordering)
-  head.html            ← CSS design system (1200 lines)
+  decks/main.yaml      ← Main deck manifest (sections + ordering)
+  decks/*.yaml         ← Additional deck manifests (multi-deck)
+  head.html            ← CSS design system
   slides/*.html        ← Individual slide files
-  tail.html            ← JavaScript engine (520 lines)
+  tail.html            ← JavaScript engine (full deck with nav/tracking)
+  tail-minimal.html    ← JavaScript engine (standalone decks, no nav)
   page.html            ← Generated output (DO NOT EDIT)
-build.js               ← Build pipeline (zero deps)
+build.js               ← Multi-deck build pipeline (zero deps)
+dev-server.js          ← Dev server with live reload
 public/
   login.html           ← Magic link login
   join.html            ← Invite-code registration
@@ -31,14 +34,19 @@ migrations/            ← PostgreSQL schema (7 files)
 
 ### Build Pipeline
 
-`node build.js` reads `slides.yaml`, concatenates `head.html` + all slide files + `tail.html`,
-injects navigation JS arrays (`groups[]`, `sectionNames{}`), writes `content/page.html`.
+`node build.js` reads YAML manifests from `content/decks/`, concatenates `head.html` + slide files + appropriate tail variant, injects navigation JS arrays (`groups[]`, `sectionNames{}`), and writes output files. Each manifest specifies `title`, `tail` (full or minimal), `output` filename, and `sections`.
+
+Build a single deck: `node build.js main` (matches `content/decks/main.yaml`).
 
 **Zero external build dependencies** — uses only Node.js `fs` + `path`.
 
-### Manifest Format (`content/slides.yaml`)
+### Manifest Format (`content/decks/main.yaml`)
 
 ```yaml
+title: "Deck Title — 2025"
+tail: full        # "full" = main deck with nav/tracking, "minimal" = standalone
+output: page.html # output filename in content/
+
 sections:
   - name: Section Name
     slides:
@@ -51,6 +59,8 @@ sections:
 
 Slide slugs must be kebab-case, matching `content/slides/<slug>.html`.
 The build system maps each slide to its section index for dot-rail navigation.
+
+To add a new deck, create a YAML manifest in `content/decks/` with a unique output filename.
 
 ---
 
@@ -187,6 +197,15 @@ Images go in `public/images/` and are referenced as `images/filename.png` (relat
 
 ---
 
+## Style Rules
+
+- **No inline styles for design-system patterns.** Every reusable visual pattern must have a CSS class in `content/head.html`. Inline `style=""` is only acceptable for one-off layout spacing (margin-top on a specific instance) or unique positioning.
+- When creating a new slide, check if existing component classes cover your needs before writing new ones.
+- If a new visual pattern appears on 2+ slides, extract it into a named CSS class.
+- New CSS classes go in `content/head.html` inside the `<style>` block, grouped with a comment header (e.g., `/* ─── STEP CARDS ─── */`).
+
+---
+
 ## Animation System
 
 ### Scroll Reveals
@@ -226,7 +245,7 @@ Bars start at `height: 0` and animate to their `data-height` percentage when the
 ## Workflow: Adding a Slide
 
 1. Create `content/slides/<name>.html` with `<div class="slide">` wrapper
-2. Add the slug to the appropriate section in `content/slides.yaml`
+2. Add the slug to the appropriate section in `content/decks/main.yaml`
 3. Run `node build.js` to regenerate `content/page.html`
 4. Test with `node dev-server.js` (serves on localhost)
 
@@ -253,7 +272,7 @@ git remote remove template
 
 Then replace the demo content:
 1. **Delete all demo slides**: `rm content/slides/*.html`
-2. **Clear the manifest**: edit `content/slides.yaml` to have one empty section
+2. **Clear the manifest**: edit `content/decks/main.yaml` to have one empty section
 3. **Re-brand**: run `/pitch-deck:customize` to change colors, fonts, brand name
 4. **Create your hero**: run `/pitch-deck:add-slide hero --section "Your Company" --type hero`
 5. **Add slides**: run `/pitch-deck:add-slide <name> --section "Section"` for each slide

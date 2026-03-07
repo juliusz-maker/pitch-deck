@@ -82,9 +82,14 @@ Current font stack:
 - **DM Serif Text** (400) — headings, hero titles, big numbers
 - **JetBrains Mono** (300-500) — code, navigation, timestamps
 
+## Style Rules
+
+- All visual patterns must use CSS classes defined in `content/head.html` — never add inline styles for design-system patterns. See the "Style Rules" section in the project's CLAUDE.md for full guidance.
+- When adding new visual elements during customization, check existing component classes in `content/head.html` before creating new ones.
+
 ## Workflow
 
 1. **Read** the files that need changes
 2. **Grep** for all instances of the value being changed
-3. **Edit** each file, updating all references consistently
+3. **Edit** each file, updating all references consistently (always prefer CSS classes over inline styles)
 4. **Report** what was changed and remind user to run `/pitch-deck:build`
