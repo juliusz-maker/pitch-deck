@@ -25,7 +25,7 @@ dev-server.js          ← Dev server with live reload
 public/
   login.html           ← Magic link login
   join.html            ← Invite-code registration
-  fonts/*.woff2        ← Inter, DM Serif Text, JetBrains Mono
+  fonts/*.woff2        ← Font files (see styles/brand.md for active fonts)
 api/                   ← Vercel serverless endpoints
   _lib/                ← Shared auth, DB, config
   admin/               ← Admin dashboard routes
@@ -66,27 +66,34 @@ To add a new deck, create a YAML manifest in `content/decks/` with a unique outp
 
 ## CSS Design Tokens
 
-All theming is driven by `:root` custom properties in `content/head.html`:
+All theming is driven by `:root` custom properties in `content/head.html`.
+Brand-specific values (accent color, fonts, RGB references) are in `styles/brand.md`.
+**Always read `styles/brand.md` for the active values before writing slides or modifying theme.**
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `--bg` | `#000000` | Page background |
-| `--bg-deep` | `#000000` | Deep background variant |
-| `--bg-surface` | `rgba(255,255,255,0.03)` | Card/surface fill |
-| `--text` | `#ECEEE2` | Primary text (warm cream) |
-| `--text-secondary` | `rgba(236,238,226,0.5)` | Secondary text |
-| `--text-muted` | `rgba(236,238,226,0.2)` | Tertiary/muted text |
-| `--accent` | `#E85D2C` | Accent color (burnt orange) |
-| `--accent-soft` | `rgba(232,93,44,0.12)` | Accent at low opacity |
-| `--divider` | `rgba(236,238,226,0.08)` | Borders and dividers |
+Core token structure:
+
+| Variable | Purpose |
+|----------|---------|
+| `--bg` | Page background |
+| `--bg-deep` | Deep background variant |
+| `--bg-surface` | Card/surface fill |
+| `--text` | Primary text |
+| `--text-secondary` | Secondary text |
+| `--text-muted` | Tertiary/muted text |
+| `--accent` | Primary accent color |
+| `--accent-soft` | Accent at low opacity |
+| `--accent-border` | Accent borders |
+| `--divider` | Borders and dividers |
 
 ### Typography
 
-| Font | Weights | Usage |
-|------|---------|-------|
-| **Inter** | 400, 700 | Body, labels, cards, UI chrome |
-| **DM Serif Text** | 400 | Headlines, hero titles, big numbers |
-| **JetBrains Mono** | 300-500 | Navigation dots, slide counter, bar labels |
+Three font roles (actual font families defined in `styles/brand.md`):
+
+| Role | Usage |
+|------|-------|
+| **Headline** (serif) | Headlines, hero titles, big numbers |
+| **Body** (sans-serif) | Body text, labels, cards, UI chrome |
+| **Mono** | Navigation dots, slide counter, bar labels, data tables |
 
 ### Key Sizes
 
@@ -251,10 +258,12 @@ Bars start at `height: 0` and animate to their `data-height` percentage when the
 
 ## Workflow: Theming
 
-1. Edit CSS custom properties in `:root` block of `content/head.html`
-2. Grep for hardcoded accent RGB values: `232,93,44` and `E85D2C`
-3. Update `public/login.html` and `public/join.html` (they have independent inline styles)
-4. Rebuild with `node build.js`
+1. Read `styles/brand.md` for current accent hex and RGB values
+2. Edit CSS custom properties in `:root` block of `content/head.html`
+3. Grep for hardcoded accent hex and RGB values (listed in `styles/brand.md`)
+4. Update `public/login.html` and `public/join.html` (they have independent inline styles)
+5. Update `styles/brand.md` to reflect new values
+6. Rebuild with `node build.js`
 
 ## Creating a New Deck
 

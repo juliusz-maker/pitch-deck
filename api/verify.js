@@ -2,19 +2,148 @@ const { randomBytes } = require('crypto');
 const { sql } = require('./_lib/db');
 const { isAdmin } = require('./_lib/admin-auth');
 
-module.exports = async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const token = url.searchParams.get('token');
-  const next = url.searchParams.get('next');
-  const inviteCode = url.searchParams.get('invite');
+// Escape HTML to prevent XSS in hidden form fields
+function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  if (!token) {
-    res.writeHead(302, { Location: '/login.html' });
-    res.end();
+// Landing page shown on GET — scanner-safe (token is NOT consumed until POST)
+function renderLanding(token, next, invite) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>AMERICAN NAIL — Verify</title>
+<style>
+  @font-face { font-family: 'Inter'; src: url('/fonts/Inter-Regular.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('/fonts/JetBrainsMono-Latin.woff2') format('woff2'); font-weight: 300; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #111111;
+    color: #ECEEE2;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .box { width: 100%; max-width: 360px; padding: 0 24px; text-align: center; }
+  .wordmark {
+    display: block;
+    margin: 0 auto 48px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 36px;
+    letter-spacing: 0.1em;
+    color: #E85D2C;
+    opacity: 0.6;
+  }
+  h2 { font-size: 18px; font-weight: 400; margin-bottom: 12px; }
+  p { font-size: 14px; color: rgba(236,238,226,0.5); line-height: 1.6; margin-bottom: 24px; }
+  button {
+    width: 100%;
+    padding: 14px;
+    background: rgba(232,93,44,0.12);
+    border: 1px solid rgba(232,93,44,0.3);
+    border-radius: 6px;
+    color: #E85D2C;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  button:hover { background: rgba(232,93,44,0.2); border-color: rgba(232,93,44,0.5); }
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="wordmark">AMERICAN NAIL</div>
+  <h2>Open your deck</h2>
+  <p>Click below to continue to the pitch deck.</p>
+  <form method="POST" action="/api/verify">
+    <input type="hidden" name="token" value="${esc(token)}">
+    <input type="hidden" name="next" value="${esc(next)}">
+    <input type="hidden" name="invite" value="${esc(invite)}">
+    <button type="submit">Continue to deck</button>
+  </form>
+</div>
+</body>
+</html>`;
+}
+
+module.exports = async (req, res) => {
+  // --- GET: show landing page (scanner-safe, does NOT consume token) ---
+  if (req.method === 'GET') {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const token = url.searchParams.get('token');
+    const next = url.searchParams.get('next') || '';
+    const invite = url.searchParams.get('invite') || '';
+
+    if (!token) {
+      res.writeHead(302, { Location: '/login.html' });
+      res.end();
+      return;
+    }
+
+    try {
+      // Check token is valid (but do NOT consume it)
+      const { rows } = await sql`
+        SELECT id FROM magic_tokens
+        WHERE token = ${token} AND used_at IS NULL AND expires_at > NOW()
+      `;
+
+      if (rows.length === 0) {
+        res.writeHead(302, { Location: '/login.html?expired=1' });
+        res.end();
+        return;
+      }
+
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(renderLanding(token, next, invite));
+    } catch (e) {
+      console.error('Verify GET error:', e);
+      res.writeHead(302, { Location: '/login.html' });
+      res.end();
+    }
+    return;
+  }
+
+  // --- POST: consume token and create session ---
+  if (req.method !== 'POST') {
+    res.writeHead(405);
+    res.end('Method not allowed');
     return;
   }
 
   try {
+    // Parse URL-encoded form body
+    let body;
+    if (req.body) {
+      body = typeof req.body === 'string' ? req.body : String(req.body);
+    } else {
+      body = await new Promise((resolve, reject) => {
+        let buf = '';
+        req.on('data', chunk => {
+          buf += chunk;
+          if (buf.length > 4096) reject(new Error('Body too large'));
+        });
+        req.on('end', () => resolve(buf));
+      });
+    }
+
+    const params = new URLSearchParams(body);
+    const token = params.get('token');
+    const next = params.get('next') || '';
+    const inviteCode = params.get('invite') || '';
+
+    if (!token) {
+      res.writeHead(302, { Location: '/login.html' });
+      res.end();
+      return;
+    }
+
     // Atomically find and consume valid, unused, non-expired token (prevents TOCTOU race)
     const { rows } = await sql`
       UPDATE magic_tokens
@@ -24,7 +153,6 @@ module.exports = async (req, res) => {
     `;
 
     if (rows.length === 0) {
-      // Token invalid, already used, or expired — redirect to login with error hint
       res.writeHead(302, { Location: '/login.html?expired=1' });
       res.end();
       return;
@@ -53,7 +181,6 @@ module.exports = async (req, res) => {
       `;
       if (links.length > 0) {
         const link = links[0];
-        // Grant data_room_access only if invite has grant_dr=true and user doesn't already have access
         if (link.grant_dr !== false) {
           await sql`
             INSERT INTO data_room_access (email, granted_by, view_id)
@@ -61,7 +188,6 @@ module.exports = async (req, res) => {
             ON CONFLICT (email) DO NOTHING
           `;
         }
-        // Add allow rule so they can log in again independently (skip if exists)
         const { rows: existing } = await sql`
           SELECT id FROM email_rules
           WHERE LOWER(pattern) = ${email} AND rule_type = 'allow'
@@ -100,7 +226,12 @@ module.exports = async (req, res) => {
     res.writeHead(302, { Location: redirect });
     res.end();
   } catch (e) {
-    console.error('Verify error:', e);
+    if (e.message === 'Body too large') {
+      res.writeHead(413);
+      res.end('Request too large');
+      return;
+    }
+    console.error('Verify POST error:', e);
     res.writeHead(302, { Location: '/login.html' });
     res.end();
   }
